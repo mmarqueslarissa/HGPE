@@ -100,6 +100,8 @@ assuntos_long <- hgpe_assuntos %>%
                            Assuntos == "A_32"~"Turismo")) 
 
 
+
+
 ## criou o banco - Percentual de assuntos por candidatos
 
 banco_cand_perc <- hgpe_assuntos %>%
@@ -154,7 +156,7 @@ banco_cand_perc <- hgpe_assuntos %>%
 ```{r echo=FALSE, fig.height=20, fig.width=15}
 
 assuntos_long %>% 
-   ggplot(aes(y = fct_reorder(Assuntos, n_assuntos), x=n_assuntos))+
+   ggplot(aes(x = fct_reorder(Assuntos, n_assuntos), y =n_assuntos))+
    geom_bar(stat = "identity")+
    theme_fivethirtyeight()+
    labs(title = "Frequência de Assuntos Abordados HGPE - 2020")+
@@ -168,7 +170,8 @@ assuntos_long %>%
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
         legend.key = element_rect(fill = "white", color = "white"),
-        strip.background=element_rect(fill="white", colour="white"))
+        strip.background=element_rect(fill="white", colour="white"))+
+  coord_polar()
    
 ```
 
