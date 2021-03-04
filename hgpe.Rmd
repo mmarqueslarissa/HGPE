@@ -1,0 +1,302 @@
+---
+title: "HGPE"
+output:
+  html_document:
+    toc: yes
+    toc_depth: '6'
+---
+
+```{r setup, include=FALSE, message=FALSE,warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggthemes)
+library(ggpubr) #annotate_figure
+library(readxl)
+
+## abrir o banco em csv
+tempo_tv <- read_excel("tempo_tv.xlsx")
+banco_hgpe <- read_csv("banco-HGPE.csv", 
+    col_types = cols(Data = col_date(format = "%d/%m/%Y")))
+
+```
+
+
+
+## Tempo de horário eleitoral disponível para cada candidato e voto
+
+```{r echo=FALSE, fig.height=10, fig.width=15}
+ggplot(tempo_tv) +
+ aes(x = `Tempo em segundos`, y = `Número de votos`, colour = Candidato, size = `Tempo em segundos`) +
+ geom_point()+
+ geom_smooth(formula= y ~ x, colour= 'black', method='lm', span = 0.8,se=F)+
+ scale_color_viridis_d(option = "C")+
+ theme_fivethirtyeight()+ ylab("Número de Votos") + xlab("Tempo de TV em segundos")+
+  ylab("Número de Votos") + 
+  xlab("Tempo de TV em segundos")+
+  labs(title = "", 
+       y = NULL,
+       x = NULL, col = "", fill = "")+
+   theme(axis.title.x = element_text(size = 12), 
+         axis.title.y = element_text(size = 12),
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 12),
+        plot.subtitle = element_text(size = 10),
+        legend.text = element_text(size = 14),
+        title = element_text(size = 14),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        legend.key = element_rect(fill = "white", color = "white"),
+        strip.background=element_rect(fill="white", colour="white"))
+ 
+```
+
+```{r include= FALSE, warning=FALSE, message=FALSE}
+
+### Transformou o banco em long 
+
+hgpe_assuntos <- banco_hgpe %>% 
+ pivot_longer(cols = starts_with("A_"), names_to = "Assuntos", values_to = "N") 
+
+
+##transformou em long por assunto e recategorizou as variáveis Assuntos
+
+assuntos_long <- hgpe_assuntos %>% 
+  group_by(Assuntos) %>% 
+  summarise(n_assuntos = sum(N, na.rm = TRUE))  %>% 
+  mutate(perc_assuntos = n_assuntos/sum(n_assuntos)*100, 
+         soma = sum(n_assuntos),
+        Assuntos=case_when(Assuntos == "A_1"~"Governo atual (-)",
+                           Assuntos == "A_2"~"Governo atual (+)", 
+                           Assuntos == "A_3"~"Governos anterios (+)",
+                           Assuntos == "A_4"~"Governos anterios (-)",
+                           Assuntos == "A_5"~"Assistência Social",
+                           Assuntos == "A_6"~"Capacidade Profissional", 
+                           Assuntos == "A_7"~"Venda do futuro",
+                           Assuntos == "A_8"~"Conexão com atores políticos", 
+                           Assuntos == "A_9"~"Conexão com Partido Político", 
+                           Assuntos == "A_10"~"Corrupção", 
+                           Assuntos == "A_11"~"Educação",
+                           Assuntos == "A_12"~"Emprego/Renda",
+                           Assuntos == "A_13"~"Família",
+                           Assuntos == "A_14"~"Lazer",
+                           Assuntos == "A_15"~"Moradia",
+                           Assuntos == "A_16"~"Pagamento de dívidas",
+                           Assuntos == "A_17"~"Arrecadação Municipal(-)",
+                           Assuntos == "A_18"~"Saúde",
+                           Assuntos == "A_19"~"Transporte",
+                           Assuntos == "A_20"~"Religião",
+                           Assuntos == "A_21"~"P.P. p/ Mulher",
+                           Assuntos == "A_22"~"Cultura",
+                           Assuntos == "A_23"~"Covid-19",
+                           Assuntos == "A_24"~"Saneamento básico",
+                           Assuntos == "A_25"~"Infraestrutura",
+                           Assuntos == "A_26"~"Pesquisa de Intenção de votos",
+                           Assuntos == "A_27"~"Conexão com o legislativo",
+                           Assuntos == "A_28"~"Incapacidade profissional",
+                           Assuntos == "A_29"~"Servidores Públicos muni.",
+                           Assuntos == "A_30"~"Agricultura",
+                           Assuntos == "A_31"~"Segurança Pública",
+                           Assuntos == "A_32"~"Turismo")) 
+
+
+## criou o banco - Percentual de assuntos por candidatos
+
+banco_cand_perc <- hgpe_assuntos %>%
+    group_by(Candidatos, Assuntos) %>% 
+    summarise(n_assuntos = sum(N, na.rm = TRUE)) %>% 
+    group_by(Candidatos) %>% 
+    mutate(perc = n_assuntos/sum(n_assuntos)*100,
+           perc_100 = sum(perc),
+           Assuntos=case_when(Assuntos == "A_1"~"Governo atual (-)",
+                           Assuntos == "A_2"~"Governo atual (+)", 
+                           Assuntos == "A_3"~"Governos anterios (+)",
+                           Assuntos == "A_4"~"Governos anterios (-)",
+                           Assuntos == "A_5"~"Assistência Social",
+                           Assuntos == "A_6"~"Capacidade Profissional", 
+                           Assuntos == "A_7"~"Venda do futuro",
+                           Assuntos == "A_8"~"Conexão com atores políticos", 
+                           Assuntos == "A_9"~"Conexão com Partido Político", 
+                           Assuntos == "A_10"~"Corrupção", 
+                           Assuntos == "A_11"~"Educação",
+                           Assuntos == "A_12"~"Emprego/Renda",
+                           Assuntos == "A_13"~"Família",
+                           Assuntos == "A_14"~"Lazer",
+                           Assuntos == "A_15"~"Moradia",
+                           Assuntos == "A_16"~"Pagamento de dívidas",
+                           Assuntos == "A_17"~"Arrecadação Municipal(-)",
+                           Assuntos == "A_18"~"Saúde",
+                           Assuntos == "A_19"~"Transporte",
+                           Assuntos == "A_20"~"Religião",
+                           Assuntos == "A_21"~"P.P. p/ Mulher",
+                           Assuntos == "A_22"~"Cultura",
+                           Assuntos == "A_23"~"Covid-19",
+                           Assuntos == "A_24"~"Saneamento básico",
+                           Assuntos == "A_25"~"Infraestrutura",
+                           Assuntos == "A_26"~"Pesquisa de Intenção de votos",
+                           Assuntos == "A_27"~"Conexão com o legislativo",
+                           Assuntos == "A_28"~"Incapacidade profissional",
+                           Assuntos == "A_29"~"Servidores Públicos muni.",
+                           Assuntos == "A_30"~"Agricultura",
+                           Assuntos == "A_31"~"Segurança Pública",
+                           Assuntos == "A_32"~"Turismo"))
+
+
+
+ 
+ 
+```
+
+## Principais assuntos das eleicoes municípais de 2020
+
+
+
+```{r echo=FALSE, fig.height=20, fig.width=15}
+
+assuntos_long %>% 
+   ggplot(aes(y = fct_reorder(Assuntos, n_assuntos), x=n_assuntos))+
+   geom_bar(stat = "identity")+
+   theme_fivethirtyeight()+
+   labs(title = "Frequência de Assuntos Abordados HGPE - 2020")+
+   theme(axis.title.x = element_text(size = 10), 
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 14),
+        plot.subtitle = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        title = element_text(size = 16),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        legend.key = element_rect(fill = "white", color = "white"),
+        strip.background=element_rect(fill="white", colour="white"))
+   
+```
+
+## Principais assuntos HGPE por candidato 
+
+```{r}
+
+```
+
+
+```{r echo=FALSE, fig.height=10, fig.width=8}
+## Wladimir Garotinho
+
+fig1 <- banco_cand_perc %>% 
+  filter(Candidatos == "Wladimir Garotinho") %>% 
+  ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
+   geom_bar(stat = "identity")+
+   labs(title = "Wladimir Garotinho")+
+   theme_fivethirtyeight()+ xlab("Percentual") + 
+   theme(axis.title.x = element_text(size = 10), 
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 14),
+        plot.subtitle = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"))
+
+```
+
+```{r echo=FALSE, fig.height=10, fig.width=8}
+
+## Caio Viana
+
+fig2 <- banco_cand_perc %>% 
+  filter(Candidatos == "Caio Viana") %>% 
+  ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
+   geom_bar(stat = "identity")+
+   labs(title = "Caio Viana")+
+   theme_fivethirtyeight()+ xlab("Percentual") + 
+   theme(axis.title.x = element_text(size = 10), 
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 14),
+        plot.subtitle = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"))
+
+
+```
+
+```{r echo=FALSE, fig.height=10, fig.width=8}
+
+## Dr. Bruno
+
+fig3 <- banco_cand_perc %>% 
+  filter(Candidatos == "Dr. Bruno") %>% 
+  ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
+   geom_bar(stat = "identity")+
+   labs(title = "Dr. Bruno")+
+   theme_fivethirtyeight()+ xlab("Percentual") + 
+   theme(axis.title.x = element_text(size = 10), 
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 14),
+        plot.subtitle = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"))
+
+```
+
+```{r echo=FALSE, fig.height=10, fig.width=8}
+
+## Rafael Diniz
+
+fig4 <- banco_cand_perc %>% 
+  filter(Candidatos == "Rafael Diniz") %>% 
+  ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
+   geom_bar(stat = "identity")+
+   labs(title = "Rafael Diniz")+
+   theme_fivethirtyeight()+ xlab("Percentual") + 
+   theme(axis.title.x = element_text(size = 10), 
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 14),
+        plot.subtitle = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"))
+```
+
+```{r echo=FALSE, fig.height=10, fig.width=8}
+
+## Professora Natália
+
+fig5 <- banco_cand_perc %>% 
+  filter(Candidatos == "Professora Natália") %>% 
+  ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
+   geom_bar(stat = "identity")+
+   labs(title = "Professora Natália")+
+   theme_fivethirtyeight()+ xlab("Percentual") + 
+   theme(axis.title.x = element_text(size = 10), 
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 14),
+        plot.subtitle = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"))
+
+```
+
+
+```{r echo=FALSE, fig.height=30, fig.width=20}
+
+figure2 <- ggarrange(fig1, fig2, fig3, fig4, fig5, ncol=2, nrow=5, common.legend = TRUE, legend="bottom")
+
+annotate_figure(figure2,
+               top = text_grob("Principais Assuntos Abordados por Candidato", color = "black", face = "bold", size = 20),
+               bottom = text_grob("Elaborado pelos autores", color = "black",
+                                  hjust = 1, x = 1, size = 10))
+```
+
+
