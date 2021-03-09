@@ -12,11 +12,16 @@ library(tidyverse)
 library(ggthemes)
 library(ggpubr) #annotate_figure
 library(readxl)
+library(ggrepel)#geom_label_repel
 
-## abrir o banco em csv
+## abrir o bancos em csv e Rda
 tempo_tv <- read_excel("tempo_tv.xlsx")
+
 banco_hgpe <- read_csv("banco-HGPE.csv", 
     col_types = cols(Data = col_date(format = "%d/%m/%Y")))
+
+disputas <- read_csv("disputas.csv")
+load("dt_campos.Rda")
 
 ```
 
@@ -24,32 +29,84 @@ banco_hgpe <- read_csv("banco-HGPE.csv",
 
 ## Tempo de horário eleitoral disponível para cada candidato e voto
 
-```{r echo=FALSE, fig.height=10, fig.width=15}
-ggplot(tempo_tv) +
- aes(x = `Tempo em segundos`, y = `Número de votos`, colour = Candidato, size = `Tempo em segundos`) +
- geom_point()+
- geom_smooth(formula= y ~ x, colour= 'black', method='lm', span = 0.8,se=F)+
- scale_color_viridis_d(option = "C")+
- theme_fivethirtyeight()+ ylab("Número de Votos") + xlab("Tempo de TV em segundos")+
-  ylab("Número de Votos") + 
-  xlab("Tempo de TV em segundos")+
-  labs(title = "", 
-       y = NULL,
-       x = NULL, col = "", fill = "")+
-   theme(axis.title.x = element_text(size = 12), 
-         axis.title.y = element_text(size = 12),
+```{r echo=FALSE, fig.height=10, fig.width=15, warning=FALSE, message=FALSE}
+
+##a confecccao do banco dt_campos esta aqui, mas nao tem como ser reproduzida pois o banco de despesas candidatos 
+#esta no repositório dados_eleicoes. 
+# gastos_campos <- despesas_contratadas_cand_20 %>% 
+#   filter(NM_UE == "CAMPOS DOS GOYTACAZES",
+#          CD_CARGO == 11) %>% 
+#   group_by(NM_CANDIDATO, NR_CANDIDATO) %>% 
+#   summarise(soma = sum(VR_DESPESA_CONTRATADA))
+# tempo_tv <- read.csv("tempo_tv.xlsx - Planilha1.csv", dec = ",")
+# 
+# gastos_campos <- as.data.frame(gastos_campos)
+# gastos_campos <- gastos_campos[-6,]
+# 
+# dt_campos <- left_join(tempo_tv, gastos_campos, by= "NR_CANDIDATO")
+
+dt_campos %>% 
+ggplot(aes(x = Tempo.em.segundos, y = Número.de.votos, colour = Candidato, size =soma)) +
+  geom_point()+
+  geom_smooth(formula= y ~ x, colour= 'black', method='lm', span = 0.8,se=F, linetype = "dotted")+
+  geom_label_repel(aes(label = Candidato),
+                  size = 4,
+                  box.padding   = 0.35, 
+                  point.padding = 0.5)+
+  #geom_text(aes(label= Candidato, size = NULL, color = Candidato), hjust = 0.5, vjust=1.9)+
+  theme_fivethirtyeight()+
+  ylab("Número de votos") + xlab("Tempo em Segundos")+
+  labs(title = "Tempo de Propaganda Eleitoral Gratuita e voto", col = NULL, fill = NULL)+
+  theme(axis.title.x = element_text(size = 12), 
+        axis.title.y = element_text(size = 12),
         axis.text.y = element_text(size = 14),
         axis.text.x = element_text(size = 12),
         plot.subtitle = element_text(size = 10),
         legend.text = element_text(size = 14),
-        title = element_text(size = 14),
+        title = element_text(size = 10),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        legend.key = element_rect(fill = "white", color = "white"),
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"),
+        legend.position = "none")
+
+
+```
+
+
+## gráfico de linhas condidatos a prefeitura de campos 
+
+```{r warning=FALSE, message=FALSE}
+
+disputas %>% 
+  ggplot(aes(x=Eleicao_Municipal, y=Total_cand_pref), col = "#6794a7")+
+  geom_line(stat = "identity", color = "#6794a7", size = 1.8, alpha = 0.8)+
+  geom_point(size= 3, color = "#6794a7", alpha = 0.8)+
+  scale_x_continuous(breaks = c(2004,2008,2012,2016,2020))+
+  theme_fivethirtyeight()+
+  ylab("Total de canddidatos") + 
+  labs(title = "Total de candidatos a prefeito em Campos dos Goytacazes", x = NULL)+
+  theme(axis.title.x = element_text(size = 12), 
+        axis.title.y = element_text(size = 12),
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 12),
+        plot.subtitle = element_text(size = 10),
+        legend.text = element_text(size = 14),
+        title = element_text(size = 10),
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
         legend.key = element_rect(fill = "white", color = "white"),
         strip.background=element_rect(fill="white", colour="white"))
- 
+  
+  
+
 ```
+
+
 
 ```{r include= FALSE, warning=FALSE, message=FALSE}
 
@@ -98,8 +155,6 @@ assuntos_long <- hgpe_assuntos %>%
                            Assuntos == "A_30"~"Agricultura",
                            Assuntos == "A_31"~"Segurança Pública",
                            Assuntos == "A_32"~"Turismo")) 
-
-
 
 
 ## criou o banco - Percentual de assuntos por candidatos
@@ -156,10 +211,12 @@ banco_cand_perc <- hgpe_assuntos %>%
 ```{r echo=FALSE, fig.height=20, fig.width=15}
 
 assuntos_long %>% 
-   ggplot(aes(x = fct_reorder(Assuntos, n_assuntos), y =n_assuntos))+
-   geom_bar(stat = "identity")+
+   ggplot(aes(x = fct_reorder(Assuntos, n_assuntos), y=n_assuntos))+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.8)+
+  coord_polar()+
    theme_fivethirtyeight()+
-   labs(title = "Frequência de Assuntos Abordados HGPE - 2020")+
+   labs(title = "Frequência de Assuntos Abordados HGPE - 2020", x= "")+
    theme(axis.title.x = element_text(size = 10), 
         axis.text.y = element_text(size = 14),
         axis.text.x = element_text(size = 14),
@@ -170,8 +227,9 @@ assuntos_long %>%
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
         legend.key = element_rect(fill = "white", color = "white"),
-        strip.background=element_rect(fill="white", colour="white"))+
-  coord_polar()
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
    
 ```
 
@@ -182,13 +240,14 @@ assuntos_long %>%
 ```
 
 
-```{r echo=FALSE, fig.height=10, fig.width=8}
+```{r echo=FALSE, fig.height=15, fig.width=12}
 ## Wladimir Garotinho
 
 fig1 <- banco_cand_perc %>% 
   filter(Candidatos == "Wladimir Garotinho") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
-   geom_bar(stat = "identity")+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.9)+
    labs(title = "Wladimir Garotinho")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 10), 
@@ -199,18 +258,21 @@ fig1 <- banco_cand_perc %>%
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
-        strip.background=element_rect(fill="white", colour="white"))
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
 
 ```
 
-```{r echo=FALSE, fig.height=10, fig.width=8}
+```{r echo=FALSE, fig.height=15, fig.width=12}
 
 ## Caio Viana
 
 fig2 <- banco_cand_perc %>% 
   filter(Candidatos == "Caio Viana") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
-   geom_bar(stat = "identity")+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.9)+
    labs(title = "Caio Viana")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 10), 
@@ -221,19 +283,22 @@ fig2 <- banco_cand_perc %>%
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
-        strip.background=element_rect(fill="white", colour="white"))
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
 
 
 ```
 
-```{r echo=FALSE, fig.height=10, fig.width=8}
+```{r echo=FALSE, fig.height=15, fig.width=12}
 
 ## Dr. Bruno
 
 fig3 <- banco_cand_perc %>% 
   filter(Candidatos == "Dr. Bruno") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
-   geom_bar(stat = "identity")+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.9)+
    labs(title = "Dr. Bruno")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 10), 
@@ -244,18 +309,21 @@ fig3 <- banco_cand_perc %>%
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
-        strip.background=element_rect(fill="white", colour="white"))
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
 
 ```
 
-```{r echo=FALSE, fig.height=10, fig.width=8}
+```{r echo=FALSE, fig.height=15, fig.width=12}
 
 ## Rafael Diniz
 
 fig4 <- banco_cand_perc %>% 
   filter(Candidatos == "Rafael Diniz") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
-   geom_bar(stat = "identity")+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.9)+
    labs(title = "Rafael Diniz")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 10), 
@@ -266,17 +334,20 @@ fig4 <- banco_cand_perc %>%
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
-        strip.background=element_rect(fill="white", colour="white"))
+        strip.background=element_rect(fill="white", colour="white"), 
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
 ```
 
-```{r echo=FALSE, fig.height=10, fig.width=8}
+```{r echo=FALSE, fig.height=15, fig.width=12}
 
 ## Professora Natália
 
 fig5 <- banco_cand_perc %>% 
   filter(Candidatos == "Professora Natália") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
-   geom_bar(stat = "identity")+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.9)+
    labs(title = "Professora Natália")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 10), 
@@ -287,7 +358,9 @@ fig5 <- banco_cand_perc %>%
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
-        strip.background=element_rect(fill="white", colour="white"))
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
 
 ```
 
