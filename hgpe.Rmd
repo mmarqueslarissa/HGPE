@@ -13,7 +13,7 @@ library(ggthemes)
 library(ggpubr) #annotate_figure
 library(readxl)
 library(ggrepel)#geom_label_repel
-
+library(sjPlot)
 ## abrir o bancos em csv e Rda
 tempo_tv <- read_excel("tempo_tv.xlsx")
 
@@ -25,6 +25,15 @@ load("dt_campos.Rda")
 
 ```
 
+```{r}
+
+dt_campos <- dt_campos %>% 
+  mutate(votos_validos = sum(Número.de.votos),
+         perc_votos = Número.de.votos/votos_validos*100)
+
+
+
+```
 
 
 ## Tempo de horário eleitoral disponível para cada candidato e voto
@@ -46,17 +55,17 @@ load("dt_campos.Rda")
 # dt_campos <- left_join(tempo_tv, gastos_campos, by= "NR_CANDIDATO")
 
 dt_campos %>% 
-ggplot(aes(x = Tempo.em.segundos, y = Número.de.votos, colour = Candidato, size =soma)) +
+ggplot(aes(x = Tempo.em.segundos, y = perc_votos, colour = Candidato, size =soma)) +
   geom_point()+
-  geom_smooth(formula= y ~ x, colour= 'black', method='lm', span = 0.8,se=F, linetype = "dotted")+
+  geom_smooth(formula= y ~ x, colour= "#6794a7", fill = "#6794a7", method='lm', span = 0.8, alpha = 0.2)+
   geom_label_repel(aes(label = Candidato),
                   size = 4,
                   box.padding   = 0.35, 
                   point.padding = 0.5)+
   #geom_text(aes(label= Candidato, size = NULL, color = Candidato), hjust = 0.5, vjust=1.9)+
   theme_fivethirtyeight()+
-  ylab("Número de votos") + xlab("Tempo em Segundos")+
-  labs(title = "Tempo de Propaganda Eleitoral Gratuita e voto", col = NULL, fill = NULL)+
+  ylab("Percentual de votos") + xlab("Tempo em Segundos")+
+  labs(title = "Tempo de Propaganda Eleitoral Gratuita e voto", col = "#6794a7", fill = NULL)+
   theme(axis.title.x = element_text(size = 12), 
         axis.title.y = element_text(size = 12),
         axis.text.y = element_text(size = 14),
@@ -72,6 +81,11 @@ ggplot(aes(x = Tempo.em.segundos, y = Número.de.votos, colour = Candidato, size
         panel.grid.major.x = element_line(colour= "#eceff2"),
         panel.grid.major.y = element_line(colour= "#eceff2"),
         legend.position = "none")
+
+
+mod <- lm(data = dt_campos, perc_votos ~ Tempo.em.segundos)
+
+tab_model(mod,  show.std = T)
 
 
 ```
