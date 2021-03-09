@@ -4,6 +4,12 @@ output:
   html_document:
     toc: yes
     toc_depth: '6'
+  word_document:
+    toc: yes
+    toc_depth: '6'
+  pdf_document:
+    toc: yes
+    toc_depth: '6'
 ---
 
 ```{r setup, include=FALSE, message=FALSE,warning=FALSE}
@@ -14,6 +20,7 @@ library(ggpubr) #annotate_figure
 library(readxl)
 library(ggrepel)#geom_label_repel
 library(sjPlot)
+library(patchwork)
 ## abrir o bancos em csv e Rda
 tempo_tv <- read_excel("tempo_tv.xlsx")
 
@@ -25,11 +32,12 @@ load("dt_campos.Rda")
 
 ```
 
-```{r}
+```{r echo=FALSE}
 
 dt_campos <- dt_campos %>% 
   mutate(votos_validos = sum(Número.de.votos),
          perc_votos = Número.de.votos/votos_validos*100)
+
 
 
 
@@ -57,22 +65,20 @@ dt_campos <- dt_campos %>%
 dt_campos %>% 
 ggplot(aes(x = Tempo.em.segundos, y = perc_votos, colour = Candidato, size =soma)) +
   geom_point()+
-  geom_smooth(formula= y ~ x, colour= "#6794a7", fill = "#6794a7", method='lm', span = 0.8, alpha = 0.2)+
+  geom_smooth(formula= y ~ x, colour= "#6794a7", fill = "#6794a7", method='lm', span = 0.4, alpha = 0.1)+
   geom_label_repel(aes(label = Candidato),
-                  size = 4,
+                  size = 6,
                   box.padding   = 0.35, 
                   point.padding = 0.5)+
   #geom_text(aes(label= Candidato, size = NULL, color = Candidato), hjust = 0.5, vjust=1.9)+
   theme_fivethirtyeight()+
   ylab("Percentual de votos") + xlab("Tempo em Segundos")+
   labs(title = "Tempo de Propaganda Eleitoral Gratuita e voto", col = "#6794a7", fill = NULL)+
-  theme(axis.title.x = element_text(size = 12), 
-        axis.title.y = element_text(size = 12),
-        axis.text.y = element_text(size = 14),
-        axis.text.x = element_text(size = 12),
-        plot.subtitle = element_text(size = 10),
-        legend.text = element_text(size = 14),
-        title = element_text(size = 10),
+  theme(axis.title.x = element_text(size = 18), 
+        axis.title.y = element_text(size = 18),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_text(size = 18),
+        title = element_text(size = 18),
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
@@ -83,9 +89,9 @@ ggplot(aes(x = Tempo.em.segundos, y = perc_votos, colour = Candidato, size =soma
         legend.position = "none")
 
 
-mod <- lm(data = dt_campos, perc_votos ~ Tempo.em.segundos)
+#mod <- lm(data = dt_campos, perc_votos ~ Tempo.em.segundos)
 
-tab_model(mod,  show.std = T)
+#tab_model(mod,  show.std = T)
 
 
 ```
@@ -93,7 +99,7 @@ tab_model(mod,  show.std = T)
 
 ## gráfico de linhas condidatos a prefeitura de campos 
 
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE, echo=FALSE}
 
 disputas %>% 
   ggplot(aes(x=Eleicao_Municipal, y=Total_cand_pref), col = "#6794a7")+
@@ -114,7 +120,9 @@ disputas %>%
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
         legend.key = element_rect(fill = "white", color = "white"),
-        strip.background=element_rect(fill="white", colour="white"))
+        strip.background=element_rect(fill="white", colour="white"), 
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
   
   
 
@@ -231,12 +239,10 @@ assuntos_long %>%
   coord_polar()+
    theme_fivethirtyeight()+
    labs(title = "Frequência de Assuntos Abordados HGPE - 2020", x= "")+
-   theme(axis.title.x = element_text(size = 10), 
-        axis.text.y = element_text(size = 14),
-        axis.text.x = element_text(size = 14),
-        plot.subtitle = element_text(size = 14),
-        legend.text = element_text(size = 14),
-        title = element_text(size = 16),
+   theme(axis.title.x = element_text(size = 12), 
+        axis.text.y = element_text(size = 16),
+        axis.text.x = element_text(size = 16),
+        title = element_text(size = 18),
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
@@ -247,14 +253,9 @@ assuntos_long %>%
    
 ```
 
-## Principais assuntos HGPE por candidato 
-
-```{r}
-
-```
-
 
 ```{r echo=FALSE, fig.height=15, fig.width=12}
+
 ## Wladimir Garotinho
 
 fig1 <- banco_cand_perc %>% 
@@ -264,11 +265,10 @@ fig1 <- banco_cand_perc %>%
             alpha = 0.9)+
    labs(title = "Wladimir Garotinho")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
-   theme(axis.title.x = element_text(size = 10), 
-        axis.text.y = element_text(size = 14),
-        axis.text.x = element_text(size = 14),
-        plot.subtitle = element_text(size = 14),
-        legend.text = element_text(size = 14),
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
@@ -289,11 +289,12 @@ fig2 <- banco_cand_perc %>%
             alpha = 0.9)+
    labs(title = "Caio Viana")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
-   theme(axis.title.x = element_text(size = 10), 
-        axis.text.y = element_text(size = 14),
-        axis.text.x = element_text(size = 14),
-        plot.subtitle = element_text(size = 14),
-        legend.text = element_text(size = 14),
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 24),
+        legend.text = element_text(size = 24),
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
@@ -315,11 +316,12 @@ fig3 <- banco_cand_perc %>%
             alpha = 0.9)+
    labs(title = "Dr. Bruno")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
-   theme(axis.title.x = element_text(size = 10), 
-        axis.text.y = element_text(size = 14),
-        axis.text.x = element_text(size = 14),
-        plot.subtitle = element_text(size = 14),
-        legend.text = element_text(size = 14),
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 24),
+        legend.text = element_text(size = 24),
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
@@ -340,11 +342,12 @@ fig4 <- banco_cand_perc %>%
             alpha = 0.9)+
    labs(title = "Rafael Diniz")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
-   theme(axis.title.x = element_text(size = 10), 
-        axis.text.y = element_text(size = 14),
-        axis.text.x = element_text(size = 14),
-        plot.subtitle = element_text(size = 14),
-        legend.text = element_text(size = 14),
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 24),
+        legend.text = element_text(size = 24),
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
@@ -364,11 +367,12 @@ fig5 <- banco_cand_perc %>%
             alpha = 0.9)+
    labs(title = "Professora Natália")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
-   theme(axis.title.x = element_text(size = 10), 
-        axis.text.y = element_text(size = 14),
-        axis.text.x = element_text(size = 14),
-        plot.subtitle = element_text(size = 14),
-        legend.text = element_text(size = 14),
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 24),
+        legend.text = element_text(size = 24),
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
         legend.background=element_rect(fill="white"),
@@ -379,14 +383,20 @@ fig5 <- banco_cand_perc %>%
 ```
 
 
-```{r echo=FALSE, fig.height=30, fig.width=20}
+```{r echo=FALSE, fig.height=45, fig.width=25}
 
-figure2 <- ggarrange(fig1, fig2, fig3, fig4, fig5, ncol=2, nrow=5, common.legend = TRUE, legend="bottom")
+# figure2 <- ggarrange(fig1, fig2, fig3, fig4, fig5, ncol=2, nrow=5, common.legend = TRUE, legend="bottom")
+# 
+# annotate_figure(figure2,
+#                top = text_grob("Principais Assuntos Abordados por Candidato", color = "black", face = "bold", size = 20),
+#                bottom = text_grob("Elaborado pelos autores", color = "black",
+#                                   hjust = 1, x = 1, size = 10))
 
-annotate_figure(figure2,
-               top = text_grob("Principais Assuntos Abordados por Candidato", color = "black", face = "bold", size = 20),
-               bottom = text_grob("Elaborado pelos autores", color = "black",
-                                  hjust = 1, x = 1, size = 10))
+
+
+(fig1+fig2)/(fig3+fig4)/(fig5)
+
+
 ```
 
 
