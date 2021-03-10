@@ -21,6 +21,8 @@ library(readxl)
 library(ggrepel)#geom_label_repel
 library(sjPlot)
 library(patchwork)
+library(stringr)#function(x) str_wrap
+
 ## abrir o bancos em csv e Rda
 tempo_tv <- read_excel("tempo_tv.xlsx")
 
@@ -236,7 +238,8 @@ assuntos_long %>%
    ggplot(aes(x = fct_reorder(Assuntos, n_assuntos), y=n_assuntos))+
    geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
             alpha = 0.8)+
-  coord_polar()+
+   scale_x_discrete(labels = function(x) str_wrap(x, width = 2))+
+   coord_polar()+
    theme_fivethirtyeight()+
    labs(title = "Frequência de Assuntos Abordados HGPE - 2020", x= "")+
    theme(axis.title.x = element_text(size = 12), 
