@@ -40,9 +40,6 @@ dt_campos <- dt_campos %>%
   mutate(votos_validos = sum(Número.de.votos),
          perc_votos = Número.de.votos/votos_validos*100)
 
-
-
-
 ```
 
 
@@ -241,7 +238,7 @@ assuntos_long %>%
    scale_x_discrete(labels = function(x) str_wrap(x, width = 2))+
    coord_polar()+
    theme_fivethirtyeight()+
-   labs(title = "Frequência de Assuntos Abordados HGPE - 2020", x= "")+
+   labs(title = "Frequência de assuntos abordados HGPE - 2020", x= "")+
    theme(axis.title.x = element_text(size = 12), 
         axis.text.y = element_text(size = 16),
         axis.text.x = element_text(size = 16),
@@ -265,7 +262,7 @@ fig1 <- banco_cand_perc %>%
   filter(Candidatos == "Wladimir Garotinho") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
    geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
-            alpha = 0.9)+
+            alpha = 0.8)+
    labs(title = "Wladimir Garotinho")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 24), 
@@ -289,7 +286,7 @@ fig2 <- banco_cand_perc %>%
   filter(Candidatos == "Caio Viana") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
    geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
-            alpha = 0.9)+
+            alpha = 0.8)+
    labs(title = "Caio Viana")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 24), 
@@ -316,7 +313,7 @@ fig3 <- banco_cand_perc %>%
   filter(Candidatos == "Dr. Bruno") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
    geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
-            alpha = 0.9)+
+            alpha = 0.8)+
    labs(title = "Dr. Bruno")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 24), 
@@ -342,7 +339,7 @@ fig4 <- banco_cand_perc %>%
   filter(Candidatos == "Rafael Diniz") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
    geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
-            alpha = 0.9)+
+            alpha = 0.8)+
    labs(title = "Rafael Diniz")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 24), 
@@ -367,7 +364,7 @@ fig5 <- banco_cand_perc %>%
   filter(Candidatos == "Professora Natália") %>% 
   ggplot(aes(y = fct_reorder(Assuntos, perc), x=perc))+
    geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
-            alpha = 0.9)+
+            alpha = 0.8)+
    labs(title = "Professora Natália")+
    theme_fivethirtyeight()+ xlab("Percentual") + 
    theme(axis.title.x = element_text(size = 24), 
