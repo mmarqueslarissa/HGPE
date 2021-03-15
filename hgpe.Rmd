@@ -588,3 +588,51 @@ banco_intencao %>%
 ```
 
 
+
+
+
+##### Grafico garotinho X anti-garotinho
+
+```{r, echo=FALSE, fig.height=15, fig.width=30}
+
+
+
+
+
+
+ggplot(banco_familia)+ 
+  aes(x=as_factor(ano_eleitoral))+ 
+  geom_line(aes(y=percent_votos, group = apoiador, col = apoiador), stat = "identity", size = 1.2, alpha = 0.7)+
+  labs(col = "")+
+ #   geom_point(aes(y=percent_votos, grpup = line_x, col = line_x), stat = "identity", size= 1.5, alpha = 0.7)+
+  #labs(col = "")+
+  geom_label_repel(aes(y=percent_votos, label = candidato, col= apoiador),
+                  size = 3,
+                  box.padding   = 0.35,
+                  point.padding = 0.5)+
+  scale_y_continuous(labels=function(x) paste0(x,"%"), limits = c(0, 100))+
+  scale_color_manual(values=c("#6794a7", "#01a2d9","#00887d","#a18376","#6794a7", "#01a2d9","#00887d","#a18376"))+
+  theme_fivethirtyeight()+ 
+  ylab("Votos")+ xlab("")+
+  labs(title = "Histórico político de Campos dos Goytacazes", col = NULL)+
+  theme(axis.text.y = element_text(size = 11),
+        axis.title.y = element_text(size = 11),
+        axis.title.x = element_text(size = 10),
+        axis.text.x = element_text(size = 11),
+        legend.text = element_text(size = 12),
+        title = element_text(size = 10),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        legend.key = element_rect(fill = "white", color = "white"),
+        strip.background=element_rect(fill="white", colour="white"), 
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
+
+
+
+```
+
+
+
+
