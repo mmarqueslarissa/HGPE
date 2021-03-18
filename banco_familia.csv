@@ -1,19 +1,21 @@
-line,candidato,ano_eleitoral,percent_votos,apoiador
-1,Garotinho I,1988,36.2,Apoio Garotinho
-2,Rockfeller de Lima,1988,29.5,Não apoio Garotinho
-1,Sérgio Mendes,1992,66.3,Apoio Garotinho
-2,Rockfeller de Lima,1992,19.6,Não apoio Garotinho
-1,Garotinho II,1996,70.6,Apoio Garotinho
-2,Rockfeller de Lima,1996,15.8,Não apoio Garotinho
-1,Arnaldo Vianna ,2000,65.9,Apoio Garotinho
-2,Paulo Feijó,2000,25.7,Não apoio Garotinho
-1,Carlos Campista,2004,54.5,Não apoio Garotinho
-2,Geraldo Pudim,2004,45.4,Apoio Garotinho
-1,Rosinha I,2008,54.4,Apoio Garotinho
-2,Arnaldo Vianna ,2008,45.5,Não apoio Garotinho
-1,Rosinha II,2012,69.9,Apoio Garotinho
-2,Makhoul Moussallem ,2012,25.5,Não apoio Garotinho
-1,Rafael Diniz,2016,55.1,Não apoio Garotinho
-2,Dr. Chicão,2016,29.8,Apoio Garotinho
-1,Wladimir Garotinho,2020,52.4,Apoio Garotinho
-2,Caio vianna,2020,47.6,Não apoio Garotinho
+candidato,ano_eleitoral,percent_votos,apoiador
+José Carlos Barbosa (PMDB),1982,42.7,Não apoio Garotinho
+Rockfeller de Lima (PDS),1982,29.5,Não apoio Garotinho
+Garotinho I (PDT),1988,36.2,Apoio Garotinho
+Rockfeller de Lima (PFL),1988,29.5,Não apoio Garotinho
+Sérgio Mendes (PDT),1992,66.3,Apoio Garotinho
+Rockfeller de Lima (PFL),1992,19.6,Não apoio Garotinho
+Garotinho II (PDT),1996,70.6,Apoio Garotinho
+Rockfeller de Lima (PFL),1996,15.8,Não apoio Garotinho
+Arnaldo Vianna (PDT),2000,65.9,Apoio Garotinho
+Paulo Feijó (PSDB),2000,25.7,Não apoio Garotinho
+Carlos Campista (PDT),2004,54.5,Não apoio Garotinho
+Geraldo Pudim (PMBD),2004,45.4,Apoio Garotinho
+Rosinha I (PMDB),2008,54.4,Apoio Garotinho
+Arnaldo Vianna (PDT),2008,45.5,Não apoio Garotinho
+Rosinha II (PR),2012,69.9,Apoio Garotinho
+Makhoul Moussallem (PT),2012,25.5,Não apoio Garotinho
+Rafael Diniz (PPS),2016,55.1,Não apoio Garotinho
+Dr. Chicão (PR),2016,29.8,Apoio Garotinho
+Wladimir Garotinho (PSD),2020,52.4,Apoio Garotinho
+Caio vianna (PDT),2020,47.6,Não apoio Garotinho

@@ -1,4 +1,8 @@
 candidato,data,percentual,n_respostas
+Wladimir Garotinho,15/09/2020,33,1000
+Caio Vianna,15/09/2020,23,1000
+Rafael Diniz ,15/09/2020,3,1000
+Dr. Bruno Calil,15/09/2020,4,1000
 Wladimir Garotinho,29/09/2020,26,720
 Caio Vianna,29/09/2020,14,720
 Rafael Diniz ,29/09/2020,9,720
@@ -12,6 +16,19 @@ Claudio Rangel,29/09/2020,1,720
 Jonathan Paes,29/09/2020,0,720
 Brancos/Nulos,29/09/2020,19,720
 Não sabe/Não respondeu,29/09/2020,18,720
+Wladimir Garotinho,25/10/2020,30,1000
+Caio Vianna,25/10/2020,23.4,1000
+Rafael Diniz ,25/10/2020,9,1000
+Odisseia,25/10/2020,1,1000
+Dr. Bruno Calil,25/10/2020,3,1000
+Alexandre Tadeu Tô Contigo ,25/10/2020,2,1000
+Dra. Carla Waleska,25/10/2020,,1000
+Professora Natália,25/10/2020,1.2,1000
+Roberto Henriques,25/10/2020,0.7,1000
+Claudio Rangel,25/10/2020,0.4,1000
+Jonathan Paes,25/10/2020,,1000
+Brancos/Nulos,25/10/2020,6,1000
+Não sabe/Não respondeu,25/10/2020,1,1000
 Wladimir Garotinho,29/10/2020,28.1,800
 Caio Vianna,29/10/2020,23.5,800
 Rafael Diniz ,29/10/2020,6.6,800
@@ -38,3 +55,7 @@ Claudio Rangel,08/11/2020,0.9,600
 Jonathan Paes,08/11/2020,0.3,600
 Brancos/Nulos,08/11/2020,0.9,600
 Não sabe/Não respondeu,08/11/2020,27.9,600
+Wladimir Garotinho,25/11/2020,50,602
+Caio Vianna,25/11/2020,38,602
+Brancos/Nulos,25/11/2020,9,602
+Não sabe/Não respondeu,25/11/2020,3,602
