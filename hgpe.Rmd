@@ -26,7 +26,7 @@ library(stringr)#function(x) str_wrap
 library(ggpubr) #stat_regline_equation
 library(ggpmisc)# stat_poly_eq
 library(devtools)
-
+library(lubridate)
 ## abrir o bancos em csv e Rda
 tempo_tv <- read_excel("tempo_tv.xlsx")
 
@@ -101,38 +101,6 @@ stat_regline_equation(aes(label=paste(..rr.label.., ..eq.label.., sep = "~~~~"))
 
 #tab_model(mod,  show.std = T)
 
-
-```
-
-
-## gráfico de linhas condidatos a prefeitura de campos 
-
-```{r warning=FALSE, message=FALSE, echo=FALSE}
-
-# disputas %>% 
-#   ggplot(aes(x=Eleicao_Municipal, y=Total_cand_pref), col = "#6794a7")+
-#   geom_line(stat = "identity", color = "#6794a7", size = 1.8, alpha = 0.8)+
-#   geom_point(size= 3, color = "#6794a7", alpha = 0.8)+
-#   scale_x_continuous(breaks = c(2004,2008,2012,2016,2020))+
-#   theme_fivethirtyeight()+
-#   ylab("Total de canddidatos") + 
-#   labs(title = "Total de candidatos a prefeito em Campos dos Goytacazes", x = NULL)+
-#   theme(axis.title.x = element_text(size = 12), 
-#         axis.title.y = element_text(size = 12),
-#         axis.text.y = element_text(size = 14),
-#         axis.text.x = element_text(size = 12),
-#         plot.subtitle = element_text(size = 10),
-#         legend.text = element_text(size = 14),
-#         title = element_text(size = 10),
-#         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
-#         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
-#         legend.background=element_rect(fill="white"),
-#         legend.key = element_rect(fill = "white", color = "white"),
-#         strip.background=element_rect(fill="white", colour="white"), 
-#         panel.grid.major.x = element_line(colour= "#eceff2"),
-#         panel.grid.major.y = element_line(colour= "#eceff2"))
-#   
-  
 
 ```
 
@@ -246,7 +214,7 @@ assuntos_long %>%
    scale_y_continuous(labels=function(x) paste0(x,"%"))+
    coord_polar()+
    theme_fivethirtyeight()+
-   labs(title = "Frequência de assuntos abordados HGPE - 2020", x= "")+
+   labs(title = "", x= "")+
    theme(axis.title.x = element_text(size = 12), 
         axis.text.y = element_text(size = 16),
         axis.text.x = element_text(size = 16),
@@ -445,7 +413,7 @@ fig5 <- banco_cand_perc %>%
 
 ```
 
-## código certo - histórico político 
+## código certo - histórico eleitoral 
 
 ```{r echo=FALSE}
 
@@ -505,21 +473,6 @@ banco_intencao <- banco_intencao %>%
 banco_intencao2 <- banco_intencao %>%
   mutate(data.x = lubridate::dmy(data))
 
-banco_intencao3 <- banco_intencao %>%
-  mutate(data.x = lubridate::dmy(data))
-
-## remover o ano da variavel data.x
-
-# banco_intencao3$day <-lubridate::day(banco_intencao3$data.x)
-# banco_intencao3$month<-lubridate::month(banco_intencao3$data.x)
-# banco_intencao3$data_nova <- (paste0(as.character(banco_intencao3$day), as.character(banco_intencao3$month), format='%d-%m'))
-# 
-# d2$MthDD <- format(as.Date(d2$PickUpDate), "%m-%d")
-# 
-# banco_intencao3 <- banco_intencao3 %>% 
-#   mutate(data_nova = lubridate::as_date(data_nova))
-
-
 
 ## construcao do grafico
 
@@ -527,30 +480,23 @@ banco_intencao2 %>%
   filter(candidato %in% c("Wladimir Garotinho", "Caio Vianna", "Rafael Diniz", 
                           "Dr. Bruno Calil", "Professora Natália", 
                           "Alexandre Tadeu Tô Contigo")) %>% 
-  ggplot(aes(x = lubridate::as_date(data.x)))+
+  ggplot(aes(x = data.x))+
   geom_line(aes(y = percentual, group = candidato, col = candidato), stat = "identity", size = 3)+
   geom_point(aes(y = percentual, group = candidato, col = candidato), size = 2.8, stat = "identity")+
   geom_errorbar(aes(ymin = percentual - p_erro, ymax = percentual + p_erro, 
                     col = candidato), position=position_dodge(0), size = 2, width = 6)+
   scale_y_continuous(labels=function(x) paste0(x,"%"))+
-  #scale_x_discrete(breaks = c('29/09/2020', '25/10/2020', '29/10/2020', '08/11/2020'))+
-  # scale_x_date(date_breaks = "1 month", 
-  #          limits = as.Date(c('2020-09-29', '2020-10-25', '2020-10-29', '2020-11-08'), format="%d/%m/%Y"),
-  #          date_labels="%b-%Y" ) +
-  # scale_x_date(date_breaks = "1 month", 
-  #                labels= date_format("%b-%Y"),
-  #                limits = as.Date(c('2020-09-29', '2020-10-25', '2020-10-29', '2020-11-08')))+
-  scale_x_date(breaks = as.Date(c('2020-09-15','2020-09-29', '2020-10-25', '2020-10-29', '2020-11-08', '2020-11-25')),
-               minor_breaks = as.Date(c('2020-09-15','2020-09-29', '2020-10-25', '2020-10-29', '2020-11-08', '2020-11-25')))+
-  #(c('2020-09-29', '2020-10-29', '2020-11-08')
-  scale_colour_manual(values = c("bisque", "#014d64" ,"#76c0c1" ,"#01a2d9", "#7ad2f6", "#00887d"))+
+  geom_vline(xintercept = as.numeric(as.Date("2020-11-15")))+
+  geom_text(label = "Primeiro turno", x = as.numeric(as.Date("2020-11-05")), y = 44, size = 10)+
+  scale_x_date(date_labels = "%m-%d", breaks = as.Date(c('2020-09-15','2020-09-29', '2020-10-25', '2020-10-29', '2020-11-08', '2020-11-15', '2020-11-25')), minor_breaks = as.Date(c('2020-09-15','2020-09-29', '2020-10-25', '2020-10-29', '2020-11-08', '2020-11-15', '2020-11-25')))+
+ scale_colour_manual(values = c("bisque", "#014d64" ,"#7ec25f" ,"#B55050", "#7ad2f6", "#00887d"))+ 
   theme_fivethirtyeight()+ 
   ylab("Votos")+
   labs(title = NULL, x = NULL,  col = "")+
   theme(axis.text.y = element_text(size = 20),
         axis.title.y = element_text(size = 20),
         axis.title.x = element_text(size = 18),
-        axis.text.x = element_text(size = 18),
+        axis.text.x = element_text(size = 20),
         legend.text = element_text(size = 24),
         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
@@ -558,11 +504,12 @@ banco_intencao2 %>%
         legend.key = element_rect(fill = "white", color = "white"),
         strip.background=element_rect(fill="white", colour="white"), 
         panel.grid.major.x = element_line(colour= "#eceff2"),
-        panel.grid.major.y = element_line(colour= "#eceff2"))
+        panel.grid.major.y = element_line(colour= "#eceff2"))+ 
+  guides(colour = guide_legend(nrow = 1))
+
 
 
 ```
-
 
 ##### Grafico garotinho X anti-garotinho
 
