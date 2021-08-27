@@ -1,0 +1,561 @@
+---
+title: "HGPE"
+output:
+  html_document:
+    toc: yes
+    toc_depth: '6'
+  word_document:
+    toc: yes
+    toc_depth: '6'
+  pdf_document:
+    toc: yes
+    toc_depth: '6'
+---
+
+```{r setup, include=FALSE, message=FALSE,warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ggthemes)
+library(ggpubr) #annotate_figure
+library(readxl)
+library(ggrepel)#geom_label_repel
+library(sjPlot)
+library(patchwork)
+library(stringr)#function(x) str_wrap
+library(ggpubr) #stat_regline_equation
+library(ggpmisc)# stat_poly_eq
+library(devtools)
+library(lubridate)
+
+#install.packages("ggspatial")
+
+## abrir o bancos em csv e Rda
+tempo_tv <- read_excel("tempo_tv.xlsx")
+
+banco_hgpe <- read_csv("banco-HGPE.csv", 
+    col_types = cols(Data = col_date(format = "%d/%m/%Y")))
+
+disputas <- read_csv("disputas.csv")
+
+load("dt_campos.Rda")
+
+banco_intencao <- read_csv("banco_intencao.csv")
+
+banco_familia <- read_csv("banco_familia.csv")
+
+```
+
+
+
+```{r echo=FALSE}
+
+dt_campos <- dt_campos %>% 
+  mutate(votos_validos = sum(Número.de.votos),
+         perc_votos = Número.de.votos/votos_validos*100)
+
+```
+
+
+## Tempo de horário eleitoral disponível para cada candidato e voto
+
+```{r echo=FALSE, fig.height=10, fig.width=15, warning=FALSE, message=FALSE}
+
+##a confecccao do banco dt_campos esta aqui, mas nao tem como ser reproduzida pois o banco de despesas candidatos 
+#esta no repositório dados_eleicoes. 
+# gastos_campos <- despesas_contratadas_cand_20 %>% 
+#   filter(NM_UE == "CAMPOS DOS GOYTACAZES",
+#          CD_CARGO == 11) %>% 
+#   group_by(NM_CANDIDATO, NR_CANDIDATO) %>% 
+#   summarise(soma = sum(VR_DESPESA_CONTRATADA))
+# tempo_tv <- read.csv("tempo_tv.xlsx - Planilha1.csv", dec = ",")
+# 
+# gastos_campos <- as.data.frame(gastos_campos)
+# gastos_campos <- gastos_campos[-6,]
+# 
+# dt_campos <- left_join(tempo_tv, gastos_campos, by= "NR_CANDIDATO")
+
+plot_1 <- dt_campos %>% 
+ggplot(aes(x = Tempo.em.segundos, y = perc_votos)) +
+  geom_smooth(formula= y ~ x, colour= "#6794a7", fill = "#6794a7", method='lm', span = 0.4, alpha = 0.1, se = TRUE)+
+  geom_point(aes(colour = Candidato, size = 0.5))+
+stat_regline_equation(aes(label=paste(..rr.label.., ..eq.label.., sep = "~~~~")), size = 6) +
+        geom_label_repel(aes(label = Candidato, colour = Candidato),
+                  size = 6,
+                  box.padding   = 0.35,
+                  point.padding = 0.5)+
+  theme_fivethirtyeight()+
+  ylab("Percentual de votos") + xlab("Tempo em Segundos")+
+  labs(title = NULL , col = "#6794a7", fill = NULL)+
+  theme(axis.title.x = element_text(size = 18),
+        axis.title.y = element_text(size = 18),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_text(size = 18),
+        title = element_text(size = 18),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        legend.key = element_rect(fill = "white", color = "white"),
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"),
+        legend.position = "none")
+
+
+
+
+
+
+```
+
+
+```{r include= FALSE, warning=FALSE, message=FALSE}
+
+### Transformou o banco em long 
+
+hgpe_assuntos <- banco_hgpe %>% 
+ pivot_longer(cols = starts_with("A_"), names_to = "Assuntos", values_to = "N") 
+
+
+##transformou em long por assunto e recategorizou as variáveis Assuntos
+
+assuntos_long <- hgpe_assuntos %>% 
+  group_by(Assuntos) %>% 
+  summarise(n_assuntos = sum(N, na.rm = TRUE))  %>% 
+  mutate(perc_assuntos = n_assuntos/sum(n_assuntos)*100, 
+         soma = sum(n_assuntos),
+        Assuntos=case_when(Assuntos == "A_1"~"Governo atual(-)",
+                           Assuntos == "A_2"~"Governo atual(+)", 
+                           Assuntos == "A_3"~"Governos anterios(-)",
+                           Assuntos == "A_4"~"Governos anterios(+)",
+                           Assuntos == "A_5"~"Assistência Social",
+                           Assuntos == "A_6"~"Capacidade Profissional", 
+                           Assuntos == "A_7"~"Venda do futuro",
+                           Assuntos == "A_8"~"Conexão atores políticos", 
+                           Assuntos == "A_9"~"Conexão Partido Político", 
+                           Assuntos == "A_10"~"Corrupção", 
+                           Assuntos == "A_11"~"Educação",
+                           Assuntos == "A_12"~"Emprego/Renda",
+                           Assuntos == "A_13"~"Família",
+                           Assuntos == "A_14"~"Lazer",
+                           Assuntos == "A_15"~"Moradia",
+                           Assuntos == "A_16"~"Pagamento de dívidas",
+                           Assuntos == "A_17"~"Arrecadação Municipal(-)",
+                           Assuntos == "A_18"~"Saúde",
+                           Assuntos == "A_19"~"Transporte",
+                           Assuntos == "A_20"~"Religião",
+                           Assuntos == "A_21"~"Política de gênero",
+                           Assuntos == "A_22"~"Cultura",
+                           Assuntos == "A_23"~"Covid-19",
+                           Assuntos == "A_24"~"Saneamento básico",
+                           Assuntos == "A_25"~"Infraestrutura",
+                           Assuntos == "A_26"~"Pesquisa eleitoral",
+                           Assuntos == "A_27"~"Conexão com legislativo",
+                           Assuntos == "A_28"~"Incapacidade profissional",
+                           Assuntos == "A_29"~"Servidores Públicos",
+                           Assuntos == "A_30"~"Agricultura",
+                           Assuntos == "A_31"~"Segurança Pública",
+                           Assuntos == "A_32"~"Turismo")) 
+
+
+## criou o banco - Percentual de assuntos por candidatos
+
+banco_cand_perc <- hgpe_assuntos %>%
+    group_by(Candidatos, Assuntos) %>% 
+    summarise(n_assuntos = sum(N, na.rm = TRUE)) %>% 
+    group_by(Candidatos) %>% 
+    mutate(perc = n_assuntos/sum(n_assuntos)*100,
+           perc_100 = sum(perc),
+           Assuntos=case_when(Assuntos == "A_1"~"Governo atual (-)",
+                           Assuntos == "A_2"~"Governo atual (+)", 
+                           Assuntos == "A_3"~"Governos anterios (-)",
+                           Assuntos == "A_4"~"Governos anterios (+)",
+                           Assuntos == "A_5"~"Assistência Social",
+                           Assuntos == "A_6"~"Capacidade Profissional", 
+                           Assuntos == "A_7"~"Venda do futuro",
+                           Assuntos == "A_8"~"Conexão com atores políticos", 
+                           Assuntos == "A_9"~"Conexão com Partido Político", 
+                           Assuntos == "A_10"~"Corrupção", 
+                           Assuntos == "A_11"~"Educação",
+                           Assuntos == "A_12"~"Emprego/Renda",
+                           Assuntos == "A_13"~"Família",
+                           Assuntos == "A_14"~"Lazer",
+                           Assuntos == "A_15"~"Moradia",
+                           Assuntos == "A_16"~"Pagamento de dívidas",
+                           Assuntos == "A_17"~"Arrecadação Municipal(-)",
+                           Assuntos == "A_18"~"Saúde",
+                           Assuntos == "A_19"~"Transporte",
+                           Assuntos == "A_20"~"Religião",
+                           Assuntos == "A_21"~"Política de gênero",
+                           Assuntos == "A_22"~"Cultura",
+                           Assuntos == "A_23"~"Covid-19",
+                           Assuntos == "A_24"~"Saneamento básico",
+                           Assuntos == "A_25"~"Infraestrutura",
+                           Assuntos == "A_26"~"Pesquisa eleitoral",
+                           Assuntos == "A_27"~"Conexão com o legislativo",
+                           Assuntos == "A_28"~"Incapacidade profissional",
+                           Assuntos == "A_29"~"Servidores Públicos",
+                           Assuntos == "A_30"~"Agricultura",
+                           Assuntos == "A_31"~"Segurança Pública",
+                           Assuntos == "A_32"~"Turismo"))
+
+
+
+ 
+ 
+```
+
+## Principais assuntos das eleicoes municípais de 2020
+
+
+```{r echo=FALSE, fig.height=15, fig.width=15}
+
+assuntos_long %>% 
+   ggplot(aes(x = fct_reorder(Assuntos, perc_assuntos), y=perc_assuntos))+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.8)+
+   scale_x_discrete(labels = function(x) str_wrap(x, width = 2))+
+   scale_y_continuous(labels=function(x) paste0(x,"%"))+
+   coord_polar()+
+   theme_fivethirtyeight()+
+   labs(title = "", x= "")+
+   theme(axis.title.x = element_text(size = 12), 
+        axis.text.y = element_text(size = 16),
+        axis.text.x = element_text(size = 16),
+        title = element_text(size = 18),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        legend.key = element_rect(fill = "white", color = "white"),
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
+   
+```
+
+
+```{r echo=FALSE, fig.height=15, fig.width=12}
+
+## Wladimir Garotinho
+
+fig1 <- banco_cand_perc %>% 
+  filter(Candidatos == "Wladimir Garotinho") %>% 
+  ggplot(aes(x = fct_reorder(Assuntos, perc), y=perc))+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.8)+
+   coord_flip()+
+   scale_y_continuous(labels=function(x) paste0(x,"%"))+
+   labs(title = "Wladimir Garotinho")+
+   theme_fivethirtyeight()+ ylab("") + 
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
+
+```
+
+
+```{r echo=FALSE, fig.height=15, fig.width=12}
+
+## Caio Viana
+
+fig2 <- banco_cand_perc %>% 
+  filter(Candidatos == "Caio Viana") %>% 
+  ggplot(aes(x = fct_reorder(Assuntos, perc), y=perc))+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.8)+
+   coord_flip()+
+   scale_y_continuous(labels=function(x) paste0(x,"%"))+
+   labs(title = "Caio Viana")+
+   theme_fivethirtyeight()+ ylab("") + 
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 24),
+        legend.text = element_text(size = 24),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
+
+
+```
+
+
+```{r echo=FALSE, fig.height=15, fig.width=12}
+
+## Dr. Bruno
+
+fig3 <- banco_cand_perc %>% 
+  filter(Candidatos == "Dr. Bruno") %>% 
+  ggplot(aes(x = fct_reorder(Assuntos, perc), y=perc))+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.8)+
+   coord_flip()+
+   scale_y_continuous(labels=function(x) paste0(x,"%"))+
+   labs(title = "Dr. Bruno")+
+   theme_fivethirtyeight()+ ylab("") + 
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 24),
+        legend.text = element_text(size = 24),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
+
+```
+
+```{r echo=FALSE, fig.height=15, fig.width=12}
+
+## Rafael Diniz
+
+fig4 <- banco_cand_perc %>% 
+  filter(Candidatos == "Rafael Diniz") %>% 
+  ggplot(aes(x = fct_reorder(Assuntos, perc), y=perc))+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.8)+
+   coord_flip()+
+   labs(title = "Rafael Diniz")+
+   scale_y_continuous(labels=function(x) paste0(x,"%"))+
+   theme_fivethirtyeight()+ ylab("") + 
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 24),
+        legend.text = element_text(size = 24),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"), 
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
+```
+
+```{r echo=FALSE, fig.height=15, fig.width=12}
+
+## Professora Natália
+
+fig5 <- banco_cand_perc %>% 
+  filter(Candidatos == "Professora Natália") %>% 
+  ggplot(aes(x = fct_reorder(Assuntos, perc), y=perc))+
+   geom_bar(stat = "identity", color = "#6794a7", fill = "#6794a7", 
+            alpha = 0.8)+
+  coord_flip()+
+   scale_y_continuous(labels=function(x) paste0(x,"%"))+
+   labs(title = "Professora Natália")+
+   theme_fivethirtyeight()+ ylab("") + 
+   theme(axis.title.x = element_text(size = 24), 
+        axis.text.y = element_text(size = 24),
+        axis.text.x = element_text(size = 24),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 24),
+        legend.text = element_text(size = 24),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        strip.background=element_rect(fill="white", colour="white"),
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))
+
+```
+
+
+```{r echo=FALSE, fig.height=35, fig.width=23}
+
+(fig1)/(fig2+fig3)/(fig4+fig5)
+
+```
+
+## grafico de linha histórico político de campos 
+
+```{r}
+
+# banco_familia %>% 
+#   # filter(candidato %in% c("Anthony Garotinho", "Sérgio Mendes", "Arnaldo Vianna", "Carlos Campista", "Rosinha Garotinho", "Rafael Diniz", "Wladimir Garotinho")) %>% 
+#   ggplot(aes(x=as_factor(ano_eleitoral), y=percent_votos, col = apoiador, group = line_x))+
+#   geom_line(stat = "identity", color = "#6794a7", size = 1.2, alpha = 0.7)+
+#   geom_point(size= 1.5, color = "#6794a7", alpha = 0.7)+
+#   geom_label_repel(aes(label = candidato),
+#                   size = 3,
+#                   box.padding   = 0.35,
+#                   point.padding = 0.5)+
+#   scale_y_continuous(labels=function(x) paste0(x,"%"))+
+#   #scale_x_continuous(breaks = c(2004,2008,2012,2016,2020))+
+#   theme_fivethirtyeight()+ 
+#   ylab("Votos")+
+#   labs(title = "Histórico político de Campos dos Goytacazes", x = NULL,  col = "Grupo famíliar")+
+#   theme(axis.text.y = element_text(size = 11),
+#         axis.title.y = element_text(size = 11),
+#         axis.title.x = element_text(size = 10),
+#         axis.text.x = element_text(size = 11),
+#         legend.text = element_text(size = 14),
+#         title = element_text(size = 10),
+#         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+#         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+#         legend.background=element_rect(fill="white"),
+#         legend.key = element_rect(fill = "white", color = "white"),
+#         strip.background=element_rect(fill="white", colour="white"), 
+#         panel.grid.major.x = element_line(colour= "#eceff2"),
+#         panel.grid.major.y = element_line(colour= "#eceff2"))
+  
+
+
+```
+
+## código certo - histórico eleitoral 
+
+```{r echo=FALSE}
+
+# ggplot(banco_familia)+ 
+#   aes(x=as_factor(ano_eleitoral))+ 
+#   geom_line(aes(y=percent_votos, group = line_x, col = line_x), stat = "identity", size = 1.2, alpha = 0.7)+
+#   labs(col = "")+
+#   geom_line(aes(y=percent_votos, grpup = line_x, col = line_x), stat = "identity", size = 1.2, alpha = 0.7)+
+#   labs(col = "")+
+#   geom_point(aes(y=percent_votos, grpup = line_x, col = line_x), stat = "identity", size= 1.5, alpha = 0.7)+
+#   labs(col = "")+
+#   geom_label_repel(aes(y=percent_votos, label = candidato, col= apoiador),
+#                   size = 3,
+#                   box.padding   = 0.35,
+#                   point.padding = 0.5)+
+#   scale_y_continuous(labels=function(x) paste0(x,"%"))+
+#   scale_color_manual(values=c("#6794a7", "#01a2d9","#00887d","#a18376","#6794a7", "#01a2d9","#00887d","#a18376"))+
+#   theme_fivethirtyeight()+ 
+#   ylab("Votos")+ xlab("")+
+#   labs(title = "Histórico político de Campos dos Goytacazes", col = NULL)+
+#   theme(axis.text.y = element_text(size = 11),
+#         axis.title.y = element_text(size = 11),
+#         axis.title.x = element_text(size = 10),
+#         axis.text.x = element_text(size = 11),
+#         legend.text = element_text(size = 12),
+#         title = element_text(size = 10),
+#         panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+#         plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+#         legend.background=element_rect(fill="white"),
+#         legend.key = element_rect(fill = "white", color = "white"),
+#         strip.background=element_rect(fill="white", colour="white"), 
+#         panel.grid.major.x = element_line(colour= "#eceff2"),
+#         panel.grid.major.y = element_line(colour= "#eceff2"))
+
+
+
+
+#"#6794a7", "#014d64" ,"#76c0c1" ,"#01a2d9", "#7ad2f6", "#00887d"
+
+```
+
+## intencao de votos e margem de erro 
+
+```{r echo=FALSE, fig.height=10, fig.width=20}
+
+## criar uma coluna com numero inteiro 
+banco_intencao <- banco_intencao %>% 
+  group_by(candidato, percentual) %>% 
+  mutate(cand_tot = (n_respostas*percentual)/100)
+
+banco_intencao <- banco_intencao %>% 
+  mutate(p = percentual/100,
+         erro = sqrt((p*(1 - p)/cand_tot)),
+         p_erro = erro * 100)
+
+## passar para data 
+banco_intencao2 <- banco_intencao %>%
+  mutate(data.x = lubridate::dmy(data))
+
+
+## construcao do grafico
+
+plot_4 <- banco_intencao2 %>% 
+  filter(candidato %in% c("Wladimir Garotinho", "Caio Vianna", "Rafael Diniz", 
+                          "Dr. Bruno Calil", "Professora Natália", 
+                          "Alexandre Tadeu Tô Contigo")) %>% 
+  ggplot(aes(x = data.x))+
+  geom_line(aes(y = percentual, group = candidato, col = candidato), stat = "identity", size = 3)+
+  geom_point(aes(y = percentual, group = candidato, col = candidato), size = 2.8, stat = "identity")+
+  geom_errorbar(aes(ymin = percentual - p_erro, ymax = percentual + p_erro, 
+                    col = candidato), position=position_dodge(0), size = 2, width = 6)+
+  scale_y_continuous(labels=function(x) paste0(x,"%"))+
+  geom_vline(xintercept = as.numeric(as.Date("2020-11-15")))+
+  geom_text(label = "Primeiro turno", x = as.numeric(as.Date("2020-11-05")), y = 44, size = 10)+
+  scale_x_date(date_labels = "%m-%d", breaks = as.Date(c('2020-09-15','2020-09-29', '2020-10-25', '2020-10-29', '2020-11-08', '2020-11-15', '2020-11-25')), minor_breaks = as.Date(c('2020-09-15','2020-09-29', '2020-10-25', '2020-10-29', '2020-11-08', '2020-11-15', '2020-11-25')))+
+ scale_colour_manual(values = c("bisque", "#014d64" ,"#7ec25f" ,"#B55050", "#7ad2f6", "#00887d"))+ 
+  theme_fivethirtyeight()+ 
+  ylab("Votos")+
+  labs(title = NULL, x = NULL,  col = "")+
+  theme(axis.text.y = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        axis.title.x = element_text(size = 18),
+        axis.text.x = element_text(size = 20),
+        legend.text = element_text(size = 24),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        legend.key = element_rect(fill = "white", color = "white"),
+        strip.background=element_rect(fill="white", colour="white"), 
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"))+ 
+  guides(colour = guide_legend(nrow = 1))
+
+ggsave(filename = "/home/larissa/Downloads/HGPE/plots/intencao_voto_colorido.png", plot = plot_4, dpi = 300, height = 12, width = 22)
+
+```
+
+##### Grafico garotinho X anti-garotinho
+
+```{r, echo=FALSE, fig.height=10, fig.width=20}
+
+# banco_familia2 <- banco_familia %>% 
+#   mutate(candidato.x = stringr::str_wrap(candidato, width = 2))
+
+banco_familia %>% 
+  filter(ano_eleitoral >= 1988) %>% 
+ggplot(aes(x=as.numeric(ano_eleitoral)))+ 
+  geom_rect(aes(xmin = 1988, xmax = 2002,ymin = -Inf, ymax = Inf), col = "#F8E6E0", fill = "#F8E6E0", alpha = 0.02)+
+  geom_rect(aes(xmin = 2008, xmax = 2016,ymin = -Inf, ymax = Inf), col = "#F8E6E0", fill = "#F8E6E0", alpha = 0.02)+
+  geom_rect(aes(xmin = 2020, xmax = Inf, ymin = -Inf, ymax = Inf), col = "#F8E6E0", fill = "#F8E6E0", alpha = 0.02)+
+  geom_line(aes(y=percent_votos, group = apoiador, col = apoiador), stat = "identity", size = 3, alpha = 0.5)+
+  geom_point(aes(y=percent_votos, group = apoiador, col = apoiador), stat = "identity", size = 3, alpha = 0.5)+
+  geom_label_repel(aes(y=percent_votos, label = candidato, col= apoiador),size = 8, box.padding = 0.35, point.padding = 0.5)+
+  geom_vline(xintercept = c(1988, 2002, 2008, 2016, 2020),size = 4, alpha = 0.05, colour = "#F8E6E0")+
+  scale_x_continuous(breaks = c(1982, 1988, 1992, 1996, 2000, 2004, 2006, 2008, 2012, 2016, 2020))+
+  scale_y_continuous(labels=function(x) paste0(x,"%"), limits = c(0, 100))+
+  scale_color_manual(values=c("#DB7093", "#01a2d9"))+
+  theme_fivethirtyeight()+
+  ylab("Votos")+ xlab("")+ 
+  labs(title = NULL, color = NULL, fill = "")+
+  theme(axis.text.y = element_text(size = 22),
+        axis.title.y = element_text(size = 20),
+        axis.title.x = element_text(size = 20),
+        axis.text.x = element_text(size = 22),
+        panel.background = element_rect(fill = "white", colour = "white", color = "white"),
+        plot.background = element_rect(fill = "white", colour = "white", color = "white"),
+        legend.background=element_rect(fill="white"),
+        legend.key = element_rect(fill = "white", color = "white"),
+        strip.background=element_rect(fill="white", colour="white"), 
+        panel.grid.major.x = element_line(colour= "#eceff2"),
+        panel.grid.major.y = element_line(colour= "#eceff2"),
+        legend.position = "none")
+
+
+
+```
+
+
+
+
+#knitr::write_bib(c("dplyr", "readxl", "tidyverse"), file= "bib.bib")
